@@ -10,7 +10,14 @@ const generateToken = (user) => {
       name: user.name,
       email: user.email,
       role: user.role,
-      roleGroup: (user.role === "system_admin" || user.role === "admin") ? "admin" : (user.role === "governance_council_member" || user.role === "knowledge_champion" || user.role === "reviewer") ? "reviewer" : "consultant",
+      roleGroup:
+        user.role === "system_admin" || user.role === "admin"
+          ? "admin"
+          : user.role === "governance_council_member" ||
+            user.role === "knowledge_champion" ||
+            user.role === "reviewer"
+          ? "reviewer"
+          : "consultant",
       regionId: user.regionId,
     },
     process.env.JWT_SECRET,
@@ -20,12 +27,25 @@ const generateToken = (user) => {
 
 export const registerUser = async (req, res) => {
   try {
-    const { name, email, password, regionId } = req.body;
+    const { name, email, password, regionId, role } = req.body;
 
     if (!name || !email || !password || !regionId) {
       return res
         .status(400)
         .json({ error: "Name, email, password and region are required" });
+    }
+
+    const allowedRoles = [
+      "junior_consultant",
+      "senior_consultant",
+      "knowledge_champion",
+      "governance_council_member",
+      "system_admin",
+    ];
+
+    const finalRole = role ? role : "junior_consultant";
+    if (!allowedRoles.includes(finalRole)) {
+      return res.status(400).json({ error: "Invalid role" });
     }
 
     const existing = await User.findOne({ email });
@@ -46,7 +66,7 @@ export const registerUser = async (req, res) => {
       email,
       password: hashed,
       regionId,
-      role: "junior_consultant",
+      role: finalRole,
     });
 
     const token = generateToken(user);
@@ -57,7 +77,14 @@ export const registerUser = async (req, res) => {
         name: user.name,
         email: user.email,
         role: user.role,
-      roleGroup: (user.role === "system_admin" || user.role === "admin") ? "admin" : (user.role === "governance_council_member" || user.role === "knowledge_champion" || user.role === "reviewer") ? "reviewer" : "consultant",
+        roleGroup:
+          user.role === "system_admin" || user.role === "admin"
+            ? "admin"
+            : user.role === "governance_council_member" ||
+              user.role === "knowledge_champion" ||
+              user.role === "reviewer"
+            ? "reviewer"
+            : "consultant",
         regionId: user.regionId,
       },
     });
@@ -92,7 +119,14 @@ export const loginUser = async (req, res) => {
         name: user.name,
         email: user.email,
         role: user.role,
-      roleGroup: (user.role === "system_admin" || user.role === "admin") ? "admin" : (user.role === "governance_council_member" || user.role === "knowledge_champion" || user.role === "reviewer") ? "reviewer" : "consultant",
+        roleGroup:
+          user.role === "system_admin" || user.role === "admin"
+            ? "admin"
+            : user.role === "governance_council_member" ||
+              user.role === "knowledge_champion" ||
+              user.role === "reviewer"
+            ? "reviewer"
+            : "consultant",
         regionId: user.regionId,
       },
     });
